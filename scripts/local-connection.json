@@ -1,0 +1,6 @@
+{
+  "Server": "localhost",
+  "Database": "Master",
+  "TrustedConnection": true,
+  "Encrypt": false
+}
