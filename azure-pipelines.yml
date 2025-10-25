@@ -21,25 +21,34 @@ stages:
   - job: Build
     displayName: 'Build Database Project'
     pool:
-      vmImage: 'windows-latest'
+      vmImage: 'ubuntu-latest'  # Use Linux for .NET Core builds
     
     steps:
-    - task: VSBuild@1
+    - task: UseDotNet@2
+      displayName: 'Use .NET 6.x'
+      inputs:
+        packageType: 'sdk'
+        version: '6.x'
+    
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore Project'
+      inputs:
+        command: 'restore'
+        projects: 'src/DatabaseProject.sln'
+    
+    - task: DotNetCoreCLI@2
       displayName: 'Build Database Project'
       inputs:
-        solution: 'src/DatabaseProject.sln'
-        platform: 'Any CPU'
-        configuration: '$(buildConfiguration)'
-        msbuildArgs: '/p:NetCoreBuild=true'
+        command: 'build'
+        arguments: '--configuration $(buildConfiguration) --no-restore'
+        projects: 'src/DatabaseProject.sln'
     
     - task: CopyFiles@2
       displayName: 'Copy DACPAC to artifacts'
       inputs:
-        Contents: |
-          **/*.dacpac
+        Contents: '**/*.dacpac'
         TargetFolder: '$(Build.ArtifactStagingDirectory)'
         CleanTargetFolder: true
-        OverWrite: true
     
     - task: PublishBuildArtifacts@1
       displayName: 'Publish DACPAC Artifact'
