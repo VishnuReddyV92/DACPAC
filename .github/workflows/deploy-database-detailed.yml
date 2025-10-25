@@ -1,10 +1,8 @@
-name: Deploy Database
+name: Deploy Database Detailed
 
 on:
   push:
     branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   deploy-to-dev:
@@ -15,11 +13,18 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Deploy to Azure SQL DB - Dev
+    - name: Deploy Tables to Dev
       uses: azure/sql-action@v2
       with:
         connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING_DEV }}
-        path: './scripts/deploy-all.sql'
+        path: './scripts/deploy-tables.sql'
+        action: 'execute'
+
+    - name: Deploy Stored Procedures and Views to Dev
+      uses: azure/sql-action@v2
+      with:
+        connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING_DEV }}
+        path: './scripts/deploy-sprocs-views.sql'
         action: 'execute'
 
   deploy-to-prod:
@@ -31,9 +36,16 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Deploy to Azure SQL DB - Prod
+    - name: Deploy Tables to Prod
       uses: azure/sql-action@v2
       with:
         connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING_PROD }}
-        path: './scripts/deploy-all.sql'
+        path: './scripts/deploy-tables.sql'
+        action: 'execute'
+
+    - name: Deploy Stored Procedures and Views to Prod
+      uses: azure/sql-action@v2
+      with:
+        connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING_PROD }}
+        path: './scripts/deploy-sprocs-views.sql'
         action: 'execute'
