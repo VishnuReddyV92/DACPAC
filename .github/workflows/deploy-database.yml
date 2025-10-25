@@ -1,0 +1,39 @@
+name: Deploy Database
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  deploy-to-dev:
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: dev
+    
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Deploy to Azure SQL DB - Dev
+      uses: azure/sql-action@v2
+      with:
+        server-name: sql-server-database-dev.database.windows.net
+        connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING_DEV }}
+        sql-file: './scripts/deploy-all.sql'
+
+  deploy-to-prod:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: prod
+    needs: deploy-to-dev
+    
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Deploy to Azure SQL DB - Prod
+      uses: azure/sql-action@v2
+      with:
+        server-name: sql-server-database-prod.database.windows.net
+        connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING_PROD }}
+        sql-file: './scripts/deploy-all.sql'
