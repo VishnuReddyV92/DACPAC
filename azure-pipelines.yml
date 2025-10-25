@@ -82,7 +82,7 @@ stages:
               ServerName: 'sql-server-database-dev.database.windows.net'
               DatabaseName: 'DatabaseProject'
               SqlUsername: 'sqladmin'
-              SqlPassword: 'YourSecurePassword123!'
+              SqlPassword: 'Jiyansh@2024'
               DacpacFile: '$(Pipeline.Workspace)/database-dacpac/src/DatabaseProject/bin/Release/DatabaseProject.dacpac'
 
 - stage: DeployToProd
@@ -109,5 +109,5 @@ stages:
               ServerName: 'sql-server-database-prod.database.windows.net'
               DatabaseName: 'DatabaseProject'
               SqlUsername: 'sqladmin'
-              SqlPassword: 'YourSecurePassword123!'
+              SqlPassword: 'Jiyansh@2024'
               DacpacFile: '$(Pipeline.Workspace)/database-dacpac/src/DatabaseProject/bin/Release/DatabaseProject.dacpac'
