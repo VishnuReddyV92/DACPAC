@@ -22,34 +22,36 @@ stages:
   - job: Build
     displayName: 'Build Database Project'
     pool:
-      vmImage: 'ubuntu-latest'
+      vmImage: 'windows-latest'
     
     steps:
-    - task: UseDotNet@2
-      displayName: 'Use .NET 6.x'
-      inputs:
-        packageType: 'sdk'
-        version: '6.x'
+    - task: NuGetToolInstaller@1
+      displayName: 'Install NuGet'
     
-    - task: DotNetCoreCLI@2
+    - task: NuGetCommand@2
       displayName: 'Restore NuGet packages'
       inputs:
         command: 'restore'
-        projects: 'src/$(solutionBaseName).sln'
+        restoreSolution: 'src/$(solutionBaseName).sln'
+        feedsToUse: 'select'
     
-    - task: DotNetCoreCLI@2
+    - task: VSBuild@1
       displayName: 'Build Database Project'
       inputs:
-        command: 'build'
-        arguments: '--configuration $(buildConfiguration) --no-restore'
-        projects: 'src/$(solutionBaseName).sln'
+        solution: 'src/$(solutionBaseName).sln'
+        platform: 'Any CPU'
+        configuration: '$(buildConfiguration)'
+        msbuildArgs: '/p:NetCoreBuild=true'
     
     - task: CopyFiles@2
       displayName: 'Copy DACPAC to artifacts'
       inputs:
-        Contents: '**/*.dacpac'
+        Contents: |
+          **/*.dacpac
+          **/*.publish.xml
         TargetFolder: '$(Build.ArtifactStagingDirectory)'
         CleanTargetFolder: true
+        OverWrite: true
     
     - task: PublishBuildArtifacts@1
       displayName: 'Publish DACPAC Artifact'
@@ -67,23 +69,26 @@ stages:
     displayName: 'Deploy Database to Dev'
     environment: 'dev'
     pool:
-      vmImage: 'ubuntu-latest'
+      vmImage: 'windows-latest'
     strategy:
       runOnce:
         deploy:
           steps:
           - download: current
             artifact: database-dacpac
+            patterns: '**/*.dacpac'
             
           - task: SqlAzureDacpacDeployment@1
             displayName: 'Deploy DACPAC to Azure SQL DB - Dev'
             inputs:
-              azureSubscription: 'Azure-Connection-Service-Principal' # Your dev service connection
+              azureSubscription: 'Azure-Connection-Service-Principal'
               ServerName: 'sql-server-database-dev.database.windows.net'
               DatabaseName: 'DatabaseProject'
               SqlUsername: 'sqladmin'
-              SqlPassword: 'YourSecurePassword123!'
+              SqlPassword: 'Jiyansh@2024'
               DacpacFile: '$(Pipeline.Workspace)/database-dacpac/src/DatabaseProject/bin/Release/DatabaseProject.dacpac'
+              deployType: 'DacpacTask'
+              IpDetectionMethod: 'AutoDetect'
 
 - stage: DeployToProd
   displayName: 'Deploy to Production'
@@ -94,20 +99,23 @@ stages:
     displayName: 'Deploy Database to Prod'
     environment: 'prod'
     pool:
-      vmImage: 'ubuntu-latest'
+      vmImage: 'windows-latest'
     strategy:
       runOnce:
         deploy:
           steps:
           - download: current
             artifact: database-dacpac
+            patterns: '**/*.dacpac'
             
           - task: SqlAzureDacpacDeployment@1
             displayName: 'Deploy DACPAC to Azure SQL DB - Prod'
             inputs:
-              azureSubscription: 'Azure-Connection-Service-Principal-Prod' # Your prod service connection
+              azureSubscription: 'Azure-Connection-Service-Principal-Prod'
               ServerName: 'sql-server-database-prod.database.windows.net'
               DatabaseName: 'DatabaseProject'
               SqlUsername: 'sqladmin'
-              SqlPassword: 'YourSecurePassword123!'
+              SqlPassword: 'Jiyansh@2024'
               DacpacFile: '$(Pipeline.Workspace)/database-dacpac/src/DatabaseProject/bin/Release/DatabaseProject.dacpac'
+              deployType: 'DacpacTask'
+              IpDetectionMethod: 'AutoDetect'
